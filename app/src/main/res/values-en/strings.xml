@@ -2,6 +2,7 @@
     <string name="app_name">Sport AI Coach</string>
 
     <!-- MainActivity -->
+    <string name="create_program_card_title">New Program</string>
     <string name="create_program_title">Create a Program</string>
     <string name="athlete_goal_hint">Athlete\'s Goal</string>
     <string name="athlete_level_hint">Athlete\'s Level</string>

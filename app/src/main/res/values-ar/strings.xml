@@ -2,6 +2,7 @@
     <string name="app_name">مدرب رياضي بالذكاء الاصطناعي</string>
 
     <!-- MainActivity -->
+    <string name="create_program_card_title">برنامج جديد</string>
     <string name="create_program_title">إنشاء برنامج</string>
     <string name="athlete_goal_hint">هدف الرياضي</string>
     <string name="athlete_level_hint">مستوى الرياضي</string>

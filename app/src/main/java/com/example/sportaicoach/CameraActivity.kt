@@ -1,25 +1,32 @@
 package com.example.sportaicoach
 
 import android.Manifest
-import android.content.ContentValues
 import android.content.pm.PackageManager
-import android.os.Build
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import java.text.SimpleDateFormat
-import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import com.google.firebase.ai.FirebaseAI
+import com.google.firebase.ai.GenerativeBackend
+import com.google.firebase.ai.GenerativeModel
+import com.google.firebase.ai.content
+import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -27,10 +34,18 @@ class CameraActivity : AppCompatActivity() {
 
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var generativeModel: GenerativeModel
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
+
+        progressBar = findViewById(R.id.progress_bar)
+
+        // Initialize Gemini AI Model
+        generativeModel = FirebaseAI.getInstance(GenerativeBackend.googleAI(BuildConfig.GEMINI_API_KEY))
+            .generativeModel("gemini-pro-vision")
 
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -49,39 +64,56 @@ class CameraActivity : AppCompatActivity() {
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
-        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-            .format(System.currentTimeMillis())
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/SportAICoach")
-            }
-        }
-
-        val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(contentResolver,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues)
-            .build()
+        // Show progress bar while we process the image and call the API
+        progressBar.visibility = View.VISIBLE
 
         imageCapture.takePicture(
-            outputOptions,
             ContextCompat.getMainExecutor(this),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
-                    Toast.makeText(baseContext, "Photo capture failed.", Toast.LENGTH_SHORT).show()
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val bitmap = image.toBitmap()
+                    image.close() // Close the image proxy
+                    analyzeImage(bitmap)
                 }
 
-                override fun onImageSaved(output: ImageCapture.OutputFileResults){
-                    val msg = "Photo capture succeeded: ${output.savedUri}"
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
+                override fun onError(exc: ImageCaptureException) {
+                    progressBar.visibility = View.GONE
+                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                    Toast.makeText(baseContext, "Photo capture failed.", Toast.LENGTH_SHORT).show()
                 }
             }
         )
     }
+
+    private fun analyzeImage(image: Bitmap) {
+        lifecycleScope.launch {
+            try {
+                val prompt = content {
+                    image(image)
+                    text("Analyse la valeur nutritionnelle de ce repas. Fournis une estimation des calories, protéines, glucides et lipides.")
+                }
+
+                val response = generativeModel.generateContent(prompt)
+
+                progressBar.visibility = View.GONE
+                showAnalysisResult(response.text ?: "L'analyse n'a pas pu être effectuée.")
+
+            } catch (e: Exception) {
+                progressBar.visibility = View.GONE
+                Log.e(TAG, "AI analysis failed", e)
+                Toast.makeText(this@CameraActivity, "AI analysis failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showAnalysisResult(result: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Analyse Nutritionnelle")
+            .setMessage(result)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -137,7 +169,6 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXApp"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf (
