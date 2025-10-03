@@ -20,10 +20,12 @@ class ProgramGenerator {
                 "avancé" -> getAdvancedWorkout(i)
                 else -> getBeginnerWorkout(i) // Cas par défaut
             }
-            workoutDays.add(WorkoutDay("Jour $i", exercises))
+            // Utilise dayNumber au lieu de dayName
+            workoutDays.add(WorkoutDay(i, exercises))
         }
 
-        return Program("Programme pour $goal", workoutDays)
+        // Retourne le programme avec l'objectif brut
+        return Program(goal, workoutDays)
     }
 
     private fun getBeginnerWorkout(day: Int): List<Exercise> {

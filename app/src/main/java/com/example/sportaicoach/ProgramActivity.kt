@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.sportaicoach.model.Exercise
 import com.example.sportaicoach.model.Program
 import com.example.sportaicoach.model.WorkoutDay
+import com.google.android.material.appbar.MaterialToolbar
 
 class ProgramActivity : AppCompatActivity() {
 
@@ -17,24 +18,30 @@ class ProgramActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_program)
 
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+
         val program = intent.getSerializableExtra("PROGRAM_EXTRA") as? Program
 
         val programNameTextView = findViewById<TextView>(R.id.program_name_textview)
         val programContainer = findViewById<LinearLayout>(R.id.program_container)
 
         if (program != null) {
-            programNameTextView.text = program.name
+            supportActionBar?.title = getString(R.string.program_activity_label)
+            programNameTextView.text = program.goal
             program.workoutDays.forEach { workoutDay ->
                 addWorkoutDayView(programContainer, workoutDay)
             }
         } else {
-            programNameTextView.text = "Erreur: Programme non trouvé"
+            programNameTextView.text = getString(R.string.error_program_not_found)
         }
     }
 
     private fun addWorkoutDayView(container: LinearLayout, workoutDay: WorkoutDay) {
         val dayTextView = TextView(this).apply {
-            text = workoutDay.dayName
+            text = getString(R.string.day_format, workoutDay.dayNumber)
             textSize = 20f
             setPadding(0, 16, 0, 8)
         }
@@ -55,7 +62,7 @@ class ProgramActivity : AppCompatActivity() {
     }
 
     private fun formatExerciseText(exercise: Exercise): String {
-        return "  • ${exercise.name}: ${exercise.sets} sets de ${exercise.reps}"
+        return getString(R.string.exercise_details_format, exercise.name, exercise.sets, exercise.reps)
     }
 
     private fun showEditExerciseDialog(textView: TextView, exercise: Exercise) {
@@ -71,23 +78,28 @@ class ProgramActivity : AppCompatActivity() {
         }
         val repsInput = EditText(this).apply { setText(exercise.reps) }
 
-        dialogLayout.addView(TextView(this).apply { text = "Nom de l'exercice" })
+        dialogLayout.addView(TextView(this).apply { text = getString(R.string.exercise_name_label) })
         dialogLayout.addView(nameInput)
-        dialogLayout.addView(TextView(this).apply { text = "Séries" })
+        dialogLayout.addView(TextView(this).apply { text = getString(R.string.sets_label) })
         dialogLayout.addView(setsInput)
-        dialogLayout.addView(TextView(this).apply { text = "Répétitions" })
+        dialogLayout.addView(TextView(this).apply { text = getString(R.string.reps_label) })
         dialogLayout.addView(repsInput)
 
         AlertDialog.Builder(this)
-            .setTitle("Modifier l'exercice")
+            .setTitle(getString(R.string.edit_exercise_dialog_title))
             .setView(dialogLayout)
-            .setPositiveButton("Enregistrer") { _, _ ->
+            .setPositiveButton(getString(R.string.save_button)) { _, _ ->
                 exercise.name = nameInput.text.toString()
                 exercise.sets = setsInput.text.toString().toIntOrNull() ?: exercise.sets
                 exercise.reps = repsInput.text.toString()
                 textView.text = formatExerciseText(exercise)
             }
-            .setNegativeButton("Annuler", null)
+            .setNegativeButton(getString(R.string.cancel_button), null)
             .show()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 }

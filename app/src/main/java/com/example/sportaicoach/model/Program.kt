@@ -9,11 +9,11 @@ data class Exercise(
 ) : Serializable
 
 data class WorkoutDay(
-    val dayName: String,
+    val dayNumber: Int,
     val exercises: List<Exercise>
 ) : Serializable
 
 data class Program(
-    val name: String,
+    val goal: String,
     val workoutDays: List<WorkoutDay>
 ) : Serializable

@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">Sport AI Coach</string>
+
+    <!-- MainActivity -->
+    <string name="create_program_title">Créer un Programme</string>
+    <string name="athlete_goal_hint">Objectif de l\'athlète</string>
+    <string name="athlete_level_hint">Niveau de l\'athlète</string>
+    <string name="training_frequency_hint">Fréquence (par semaine)</string>
+    <string name="generate_program_button">Générer le programme</string>
+    <string name="error_fill_all_fields">Veuillez remplir tous les champs</string>
+    <string name="error_invalid_frequency">Veuillez entrer une fréquence valide</string>
+
+    <!-- ProgramActivity -->
+    <string name="program_activity_label">Programme d\'entraînement</string>
+    <string name="error_program_not_found">Erreur: Programme non trouvé</string>
+    <string name="day_format">Jour %d</string>
+    <string name="exercise_details_format">• %1$s: %2$d séries de %3$s</string>
+    <string name="edit_exercise_dialog_title">Modifier l\'exercice</string>
+    <string name="exercise_name_label">Nom de l\'exercice</string>
+    <string name="sets_label">Séries</string>
+    <string name="reps_label">Répétitions</string>
+    <string name="save_button">Enregistrer</string>
+    <string name="cancel_button">Annuler</string>
+
+    <!-- Menu -->
+    <string name="toggle_theme_menu">Changer de thème</string>
+    <string name="view_progress_button">Voir la progression</string>
+    <string name="analyze_meal_button">Analyser un repas (Caméra)</string>
+
 </resources>

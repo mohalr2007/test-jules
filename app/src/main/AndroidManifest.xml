@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -24,7 +27,17 @@
 
         <activity
             android:name=".ProgramActivity"
-            android:label="Programme d'entraînement"
+            android:label="@string/program_activity_label"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".ChartActivity"
+            android:label="Progression de l'athlète"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".CameraActivity"
+            android:label="Analyser un repas"
             android:parentActivityName=".MainActivity" />
 
     </application>
